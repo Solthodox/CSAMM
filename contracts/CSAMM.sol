@@ -5,7 +5,7 @@ contract CSAMM {
     address public inmutable token0;
     address public inmutable token1;
 
-    mapping(uint256 => uint256) _reserves;
+    mapping(address => uint256) _reserves;
 
     uint256 public totalSupply;
     mapping(address => uint256) private _balances;
@@ -19,13 +19,13 @@ contract CSAMM {
         external
         returns (uint256 amountOut)
     {
-        require(_tokenIn == token0 || _tokenOut == token1, "Invalid token");
+        require(_tokenIn == token0 || _tokenIn == token1, "Invalid token");
         // transfer tokenIn to the contract
         uint256 amountIn;
         IERC20(_tokenIn).transferFrom(msg.sender, address(this), _amountIn);
         amountIn =
             IERC20(_tokenIn).balanceOf(address(this)) -
-            reserves[_tokenIn];
+            _reserves[_tokenIn];
         // calculate amount out(including 0.3% fees)
         amountOut = (amountIn * 997) / 1000;
         address tokenOut = _tokenIn == token0 ? token1 : token0;
@@ -33,12 +33,12 @@ contract CSAMM {
         if (_tokenIn == token0) {
             _update(
                 _reserves[token0] + _amountIn,
-                _reserves[[token1] - amountOut]
+                _reserves[token1] - amountOut
             );
         } else {
             _update(
                 _reserves[token1] + _amountIn,
-                _reserves[[token0] - amountOut]
+                _reserves[token0] - amountOut
             );
         }
         // transfer token out
@@ -47,7 +47,7 @@ contract CSAMM {
 
     function addLiquidity(uint256 _amount0, uint256 _amount1)
         external
-        returns (uint shares)
+        returns (uint256 shares)
     {
         IERC20(token0).transferFrom(msg.sender, address(this), _amount0);
         IERC20(token1).transferFrom(msg.sender, address(this), _amount1);
@@ -58,37 +58,41 @@ contract CSAMM {
         uint256 d0 = bal0 - _reserves[token0];
         uint256 d1 = bal1 - _reserves[token1];
 
-        shares = totalSupply == 0 ? d0 + d1 : ((d0 + d1) * totalSupply / (_reserves[token0] + _reserves[token1]) );
-        assert(shares>0 , "Shares is equal to 0");
-        _mint(msg.sender , shares);
-        _update(bal0 , bal1);
+        shares = totalSupply == 0
+            ? d0 + d1
+            : (((d0 + d1) * totalSupply) /
+                (_reserves[token0] + _reserves[token1]));
+        require(shares > 0, "Shares is equal to 0");
+        _mint(msg.sender, shares);
+        _update(bal0, bal1);
     }
 
-    function removeLiquidity(uint _shares) 
-        external returns(uint d0 , uintd1)
+    function removeLiquidity(uint256 _shares)
+        external
+        returns (uint256 d0, uint256 d1)
     {
-        d0 =( _reserves[token0] * _shares) / totalSuuply;
-        d1 =( _reserves[token1] * _shares) / totalSuuply;
-        _burn(msg.sender , _shares);
-        _update(_reserves[token0] - d0 , _reserves[token1] - d1);
+        d0 = (_reserves[token0] * _shares) / totalSupply;
+        d1 = (_reserves[token1] * _shares) / totalSupply;
+        _burn(msg.sender, _shares);
+        _update(_reserves[token0] - d0, _reserves[token1] - d1);
 
-        if(d0 > 0){
-            IERC20(token0).transfer(msg.sender , d0);
+        if (d0 > 0) {
+            IERC20(token0).transfer(msg.sender, d0);
         }
 
-        if(d1>0){
-            IERC20(token1).transfer(msg.sender , d1);
+        if (d1 > 0) {
+            IERC20(token1).transfer(msg.sender, d1);
         }
     }
 
     function _mint(address _to, uint256 _amount) private {
         _balances[_to] += _amount;
-        _totalSupply += _amount;
+        totalSupply += _amount;
     }
 
     function _burn(address _from, uint256 _amount) private {
         _balances[_from] -= _amount;
-        _totalSupply -= _amount;
+        totalSupply -= _amount;
     }
 
     function _update(uint256 _res0, uint256 _res1) private {
