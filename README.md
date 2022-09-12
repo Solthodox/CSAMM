@@ -1,1 +1,1 @@
-"# CSAMM" 
+# Constant Sum Automated Market Maker
