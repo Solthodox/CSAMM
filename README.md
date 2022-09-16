@@ -4,6 +4,8 @@ This is just a theorical application of what a Constant Sum Automated Market Mak
 
 ## Math behind
 
+![alt text](https://github.com/XabierOterino/CSAMM/blob/main/img/1_OXxOE-Cu78TSeMwMKhy33Q.png)
+
 The equation is as simple as : number of tokens(x) + number of tokens(y) equals a constant c : 
 
 ```shell
@@ -32,4 +34,4 @@ This algorithm wouldn't be a very good solution for an AMM. There are several re
 
 ## How build a Stablecoin dex
 
-This could be seen as a good solution to the big problem of stable-coins : they should be worth the same but in a CPAMM slippage significantly reduces the amount you get back. So, why don't we create a 
+This could be seen as a good solution to the big problem of stable-coins : they should be worth the same but in a CPAMM slippage significantly reduces the amount you get back. So, why don't we create a CSAMM for stablecoins? You would get 100x for 100y, which should be fine because they are both worth 1$ right? The truth is, that in addtition to the problem mentioned before, in the real world they are not all perfectly pegged to the dollar, its a difference of pennies but very relevant. That means user could use the dex to get as many y tokens of x they deposit, even though they are not worth the same. It would be basically a scam for the dex. Fortunately, Curve has created a new equation that mixes CSAMM and CPAMM equations to solve this problem with a very small slippage. See [StableSwap](https://github.com/XabierOterino/Stable-Swap) repo for more.
